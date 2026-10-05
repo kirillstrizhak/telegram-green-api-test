@@ -1,0 +1,19 @@
+.input-base {
+  width: 100%;
+  padding: 6px 12px;
+  border-radius: 16px;
+  background: #ffffff17;
+  height: 52px;
+  font-size: 15px;
+  font-style: normal;
+  line-height: 20px;
+  display: flex;
+  position: relative;
+  color: #fff;
+  border: none;
+  outline: none;
+
+  &::placeholder {
+    color: #ffffffa3;
+  }
+}

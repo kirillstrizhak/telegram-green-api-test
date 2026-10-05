@@ -1,0 +1,22 @@
+.button-base {
+  cursor: pointer;
+  background: #007aff;
+  color: #fff;
+  border-radius: 20px;
+  font-size: 17px;
+  font-weight: 500;
+  height: 60px;
+  border: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+  display: flex;
+  position: relative;
+  min-width: fit-content;
+
+  &.disabled {
+    color: #ffffff47;
+    background: #ffffff1f;
+  }
+}

@@ -1,12 +1,15 @@
-import './App.css'
+import "./App.css";
+import { BrowserRouter, Route, Routes } from "react-router";
+import AuthPage from "./pages/AuthPage/ui/AuthPage";
 
 function App() {
-
   return (
-    <body>
-      
-    </body>
-  )
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<AuthPage />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;

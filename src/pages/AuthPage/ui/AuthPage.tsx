@@ -1,14 +1,14 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import styles from "./AuthPage.module.scss";
 import InputBase from "../../../shared/ui/InputBase/InputBase";
 import ButtonBase from "../../../shared/ui/ButtonBase/ButtonBase";
 import {
-  loadAuth,
   saveAuth,
   type AuthData,
-} from "../../../shared/features/auth/auth";
+} from "../../../features/auth/auth";
 import { useNavigate } from "react-router";
-import { validateCredentials } from "../../../shared/features/api/validateCredentials";
+import { validateCredentials } from "../../../features/api/validateCredentials";
+import Preloader from "../../../shared/ui/Preloader/Preloader";
 
 function AuthPage() {
   const navigate = useNavigate();
@@ -16,6 +16,7 @@ function AuthPage() {
   const [idInstance, setIdInstance] = useState("");
   const [apiTokenInstance, setApiTokenInstance] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const authenticate = async () => {
     if (!idInstance || !apiTokenInstance) {
@@ -24,58 +25,64 @@ function AuthPage() {
     }
 
     setErrorMessage("");
+    setIsLoading(true);
 
-    const authData: AuthData = {
-      idInstance: idInstance,
-      apiTokenInstance: apiTokenInstance,
-    };
+    try {
+      const authData: AuthData = {
+        idInstance: idInstance,
+        apiTokenInstance: apiTokenInstance,
+      };
 
-    const credentialsCheck = await validateCredentials(authData);
+      const credentialsCheck = await validateCredentials(authData);
 
-    if (!credentialsCheck.valid) {
-      setErrorMessage(credentialsCheck.reason ? credentialsCheck.reason : "");
-      return;
+      if (!credentialsCheck.valid) {
+        setErrorMessage(credentialsCheck.reason ? credentialsCheck.reason : "");
+        return;
+      }
+
+      saveAuth(authData);
+
+      setTimeout(() => navigate("/chats"), 500);
+    } finally {
+      setTimeout(() => setIsLoading(false), 500);
     }
-
-    saveAuth(authData);
-    navigate("/chats");
   };
-
-  useEffect(() => {
-    if (loadAuth()) {
-      navigate("/chats");
-    }
-  }, []);
 
   return (
     <main className={styles["login-wrapper"]}>
       <div className={styles["login-form"]}>
-        <h2 className={styles["heading-base"]}>Вход</h2>
-        <p className={styles["hint-base"]}>
-          Введите idInstance и apiTokenInstance из Вашего личного кабинета{" "}
-          <a href="https://console.green-api.com/" target="_blank">
-            GREEN API
-          </a>
-        </p>
-        <InputBase
-          value={idInstance}
-          placeholder={"Ваш idInstance"}
-          onChange={(value) => setIdInstance(value)}
-        />
-        <InputBase
-          value={apiTokenInstance}
-          placeholder={"Ваш apiTokenInstance"}
-          onChange={(value) => setApiTokenInstance(value)}
-        />
-        {errorMessage && (
-          <p className={styles["error-message"]}>{errorMessage}</p>
+        {isLoading ? (
+          <Preloader />
+        ) : (
+          <>
+            <h2 className={styles["heading-base"]}>Вход</h2>
+            <p className={styles["hint-base"]}>
+              Введите idInstance и apiTokenInstance из Вашего личного кабинета{" "}
+              <a href="https://console.green-api.com/" target="_blank">
+                GREEN API
+              </a>
+            </p>
+            <InputBase
+              value={idInstance}
+              placeholder={"Ваш idInstance"}
+              onChange={(value) => setIdInstance(value)}
+            />
+            <InputBase
+              value={apiTokenInstance}
+              placeholder={"Ваш apiTokenInstance"}
+              onChange={(value) => setApiTokenInstance(value)}
+            />
+            {errorMessage && (
+              <p className={styles["error-message"]}>{errorMessage}</p>
+            )}
+            <ButtonBase
+              onClick={() => authenticate()}
+              addClass={styles["auth-button"]}
+            >
+              Войти
+            </ButtonBase>
+          </>
         )}
-        <ButtonBase
-          onClick={() => authenticate()}
-          addClass={styles["auth-button"]}
-        >
-          Войти
-        </ButtonBase>
       </div>
     </main>
   );

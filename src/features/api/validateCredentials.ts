@@ -1,9 +1,9 @@
 import axios from 'axios';
 import type { AuthData } from '../auth/auth';
 
-export async function validateCredentials(authState: AuthData) {
-  const { idInstance, apiTokenInstance } = authState;
-  const url = `https://api.green-api.com/waInstance${idInstance}/getStateInstance/${apiTokenInstance}`;
+export async function validateCredentials(authData: AuthData) {
+  const { idInstance, apiTokenInstance } = authData;
+  const url = `${import.meta.env.VITE_APP_API_URL}/waInstance${idInstance}/getStateInstance/${apiTokenInstance}`;
 
   try {
     const response = await axios.get(url, { timeout: 10000 });

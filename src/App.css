@@ -1,0 +1,5 @@
+main {
+  background-image: url(/public/pattern.svg);
+  background-color: #0d0d0d;
+  filter: contrast(0.935);
+}

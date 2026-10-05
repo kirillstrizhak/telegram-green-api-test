@@ -24,7 +24,7 @@ const InputBase: React.FC<InputBaseProps> = ({
       type="text"
       placeholder={placeholder ? placeholder : ""}
       value={value}
-      onChange={(e) => onChange(e.target.value)}
+      onChange={(e) => onChange(e.target.value.trim())}
     />
   );
 };

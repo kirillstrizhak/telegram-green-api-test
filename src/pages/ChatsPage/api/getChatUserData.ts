@@ -33,3 +33,19 @@ export async function getChatUserAvatar(chatId: string) {
     return null;
   }
 }
+
+export async function checkAccount(params: { phoneNumber?: number; username?: string }) {
+  const authData = loadAuth();
+  if (!authData) {
+    return null;
+  }
+
+  const url = `${import.meta.env.VITE_APP_API_URL}/waInstance${authData.idInstance}/checkAccount/${authData.apiTokenInstance}`;
+
+  try {
+    const response = await axios.post(url, params);
+    return response.data as { exist: boolean; chatId: string; username?: string; phoneNumber?: number };
+  } catch (error) {
+    return null;
+  }
+}

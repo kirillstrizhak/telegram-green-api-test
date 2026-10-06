@@ -25,6 +25,7 @@ function ChatsPage() {
 
   const [chatsLoading, setChatsLoading] = useState(false);
   const [messagesLoading, setMessagesLoadingLoading] = useState(false);
+  const [newChatError, setNewChatError] = useState("");
 
   const getUserChats = async () => {
     setChatsLoading(true);
@@ -112,9 +113,11 @@ function ChatsPage() {
 
     const account = await checkAccount(Number(phone));
     if (!account?.exist || !account.chatId) {
-      console.error("Аккаунт не найден");
+      setNewChatError("Аккаунт не найден");
       return;
     }
+
+    setNewChatError("");
 
     const chatId = account.chatId;
 
@@ -229,6 +232,7 @@ function ChatsPage() {
                 placeholder="Введите сообщение..."
                 onKeyDown={(e) => e.key === "Enter" && createNewChat()}
               />
+              {newChatError && <p className={styles["error-message"]}>{newChatError}</p>}
               <ButtonBase onClick={() => createNewChat()} addClass={styles["logout-button"]}>
                 Написать
               </ButtonBase>

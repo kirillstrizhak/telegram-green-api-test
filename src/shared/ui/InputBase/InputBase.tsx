@@ -6,6 +6,7 @@ type InputBaseProps = {
   value: string;
   placeholder?: string;
   onChange: (value: string) => void;
+  onKeyDown?: (value: any) => void;
 };
 
 const InputBase: React.FC<InputBaseProps> = ({
@@ -14,6 +15,7 @@ const InputBase: React.FC<InputBaseProps> = ({
   value,
   placeholder,
   onChange,
+  onKeyDown
 }) => {
   const inputClass = `${styles["input-base"]} ${addClass ? addClass : ""} ${disabled ? "disabled" : ""}`;
 
@@ -24,6 +26,7 @@ const InputBase: React.FC<InputBaseProps> = ({
       type="text"
       placeholder={placeholder ? placeholder : ""}
       value={value}
+      onKeyDown={onKeyDown ? (e) => onKeyDown(e) : undefined}
       onChange={(e) => onChange(e.target.value.trim())}
     />
   );

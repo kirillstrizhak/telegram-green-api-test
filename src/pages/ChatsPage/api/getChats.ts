@@ -31,6 +31,14 @@ let enrichedInFlight: Promise<EnrichedChat[]> | null = null;
 let enrichedCache: { data: EnrichedChat[]; ts: number } | null = null;
 const TTL = 30_000;
 
+let historyQueue: Promise<void> = Promise.resolve();
+
+function throttledGetHistory(chatId: string, count: number) {
+  const result = historyQueue.then(() => getChatMessageHistory(chatId, count));
+  historyQueue = result.then(() => new Promise((r) => setTimeout(r, 1100)));
+  return result;
+}
+
 export async function getEnrichedChats(): Promise<EnrichedChat[]> {
   if (enrichedCache && Date.now() - enrichedCache.ts < TTL) {
     return enrichedCache.data;
@@ -48,7 +56,7 @@ export async function getEnrichedChats(): Promise<EnrichedChat[]> {
       const [avatar, contact, history] = await Promise.all([
         getChatUserAvatar(chat.chatId),
         getChatUserData(chat.chatId),
-        getChatMessageHistory(chat.chatId, 1),
+        throttledGetHistory(chat.chatId, 1),
       ]);
       enriched.push({
         ...chat,

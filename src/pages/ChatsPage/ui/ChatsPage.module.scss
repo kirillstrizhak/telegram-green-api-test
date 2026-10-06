@@ -4,6 +4,8 @@
 }
 
 .chats-container {
+  display: flex;
+  flex-direction: column;
   width: 30vw;
   height: 100%;
   background: #17181c;
@@ -16,6 +18,15 @@
 
 .chats-header {
   padding: 15px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  .logout-button {
+    padding: 10px 15px;
+    height: 40px;
+    border-radius: 12px;
+  }
 
   h2 {
     color: #fff;
@@ -25,6 +36,11 @@
 .chats-list {
   display: flex;
   flex-direction: column;
+}
+
+.chats-list-container {
+  position: relative;
+  flex: 1;
 }
 
 .chat-card {
@@ -98,6 +114,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
 .messages-window-header {
@@ -142,8 +159,71 @@
   }
 }
 
+.messages-window-messages-wrapper {
+  position: relative;
+  overflow: auto;
+  height: 100%;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #22252f;
+    border-radius: 1000px;
+
+    &:hover {
+      background: #32343d;
+    }
+  }
+
+  scrollbar-width: thin;
+  scrollbar-color: #22252f transparent;
+}
+
 .messages-window-messages {
-  flex: 1;
+  display: flex;
+  padding: 20px;
+  padding-bottom: 90px;
+  flex-direction: column;
+  justify-content: end;
+  gap: 5px;
+
+  &.loading {
+    height: 100%;
+  }
+}
+
+.messages-window-message-wrapper {
+  display: flex;
+  width: 100%;
+  justify-content: end;
+
+  &.incoming {
+    justify-content: start;
+  }
+}
+
+.messages-window-message {
+  color: #fff;
+  background: linear-gradient(239deg, #8849b4 0%, #735acd 50%, #735acd 100%);
+  padding: 13px;
+  font-size: 16px;
+  font-weight: 300;
+  line-height: 1;
+  min-width: 55px;
+  max-width: 70%;
+  border-radius: 16px;
+  text-align: end;
+
+  &.incoming {
+    text-align: start;
+    background: linear-gradient(239deg, #3b3f5e 0%, #373a4e 50%, #32343d 100%);
+  }
 }
 
 .messages-window-text-box {
@@ -152,6 +232,9 @@
   gap: 15px;
   padding: 0 20px;
   padding-bottom: 15px;
+  position: absolute;
+  width: 100%;
+  bottom: 0;
 }
 
 .send-button {
@@ -161,4 +244,18 @@
 
 .message-input {
   background: #17181c;
+}
+
+.no-chats {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  p {
+    color: #fff;
+    padding: 5px 15px;
+    background: #ffffff0f;
+    border-radius: 1000px;
+  }
 }

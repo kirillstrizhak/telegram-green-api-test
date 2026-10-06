@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { getEnrichedChats } from "../api/getChats";
 import styles from "./ChatsPage.module.scss";
-import type { Chat, EnrichedChat, TextMessage } from "../api/types";
+import type { EnrichedChat, TextMessage } from "../api/types";
 import { formaDate } from "../../../shared/helpers/formatDate";
 import ButtonBase from "../../../shared/ui/ButtonBase/ButtonBase";
 import InputBase from "../../../shared/ui/InputBase/InputBase";

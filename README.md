@@ -13,7 +13,7 @@
 {
 	"statusCode": 400,
 	"timestamp": "2026-10-06T14:24:30.150544189Z",
-	"path": "/waInstance|*мой idInstance*|/getMessage/|*мой apiTokenInstance*|",
+	"path": "/waInstanceМой idInstance/getMessage/Мой apiTokenInstance",
 	"message": "Message not found by id 1791296729417"
 }
 ```

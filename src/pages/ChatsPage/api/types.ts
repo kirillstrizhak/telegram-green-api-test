@@ -33,19 +33,23 @@ export type EnrichedChat = Chat & {
 };
 
 export type TextMessage = {
-  type: string;
-  idMessage: string;
-  timestamp: number;
-  typeMessage: string;
-  chatId: string;
-  chatType: string;
-  textMessage: string;
-  isForwarded: boolean;
-  forwardingScore: number;
-  statusMessage: string;
-  sendByApi: boolean;
-  deletedMessageId: string;
+  type?: string;
+  idMessage?: string;
+  timestamp?: number;
+  typeMessage?: string;
+  chatId?: string;
+  chatType?: string;
+  textMessage?: string;
+  senderId?: string;
+  senderName?: string;
+  senderType?: string;
+  senderContactName?: string;
+  isForwarded?: boolean;
+  forwardingScore?: number;
+  statusMessage?: string;
+  sendByApi?: boolean;
+  deletedMessageId?: string;
   editedMessageId: string;
-  isEdited: boolean;
-  isDeleted: boolean;
+  isEdited?: boolean;
+  isDeleted?: boolean;
 };

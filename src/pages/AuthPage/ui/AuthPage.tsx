@@ -1,11 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import styles from "./AuthPage.module.scss";
 import InputBase from "../../../shared/ui/InputBase/InputBase";
 import ButtonBase from "../../../shared/ui/ButtonBase/ButtonBase";
-import {
-  saveAuth,
-  type AuthData,
-} from "../../../features/auth/auth";
+import { loadAuth, saveAuth, type AuthData } from "../../../features/auth/auth";
 import { useNavigate } from "react-router";
 import { validateCredentials } from "../../../features/api/validateCredentials";
 import Preloader from "../../../shared/ui/Preloader/Preloader";
@@ -48,6 +45,12 @@ function AuthPage() {
     }
   };
 
+  useEffect(() => {
+    if (loadAuth()) {
+      navigate("/chats");
+    }
+  }, []);
+
   return (
     <main className={styles["login-wrapper"]}>
       <div className={styles["login-form"]}>
@@ -62,23 +65,10 @@ function AuthPage() {
                 GREEN API
               </a>
             </p>
-            <InputBase
-              value={idInstance}
-              placeholder={"Ваш idInstance"}
-              onChange={(value) => setIdInstance(value)}
-            />
-            <InputBase
-              value={apiTokenInstance}
-              placeholder={"Ваш apiTokenInstance"}
-              onChange={(value) => setApiTokenInstance(value)}
-            />
-            {errorMessage && (
-              <p className={styles["error-message"]}>{errorMessage}</p>
-            )}
-            <ButtonBase
-              onClick={() => authenticate()}
-              addClass={styles["auth-button"]}
-            >
+            <InputBase value={idInstance} placeholder={"Ваш idInstance"} onChange={(value) => setIdInstance(value)} />
+            <InputBase value={apiTokenInstance} placeholder={"Ваш apiTokenInstance"} onChange={(value) => setApiTokenInstance(value)} />
+            {errorMessage && <p className={styles["error-message"]}>{errorMessage}</p>}
+            <ButtonBase onClick={() => authenticate()} addClass={styles["auth-button"]}>
               Войти
             </ButtonBase>
           </>

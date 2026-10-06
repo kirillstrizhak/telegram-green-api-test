@@ -8,11 +8,11 @@ export async function getChatMessageHistory(chatId: string, count: number) {
     return [] as TextMessage[];
   }
 
-  const url = `${import.meta.env.VITE_APP_API_URL}/waInstance${authData.idInstance}/getChatHistory/${authData.apiTokenInstance}`;;
+  const url = `${import.meta.env.VITE_APP_API_URL}/waInstance${authData.idInstance}/getChatHistory/${authData.apiTokenInstance}`;
 
   try  {
     const response = await axios.post(url, {chatId, count});  
-    return response.data as TextMessage[];
+    return response.data.reverse() as TextMessage[];
   } catch (error) {
     return [] as TextMessage[];
   }

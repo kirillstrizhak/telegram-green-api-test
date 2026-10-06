@@ -6,10 +6,11 @@ import { formaDate } from "../../../shared/helpers/formatDate";
 import ButtonBase from "../../../shared/ui/ButtonBase/ButtonBase";
 import InputBase from "../../../shared/ui/InputBase/InputBase";
 import { getChatMessageHistory } from "../api/getMessagesHistory";
-import { deleteNotificationApi, receiveNotificationApi, sendMessageApi } from "../api/sendOrReceiveMessage";
+import { deleteNotificationApi, readChat, receiveNotificationApi, sendMessageApi } from "../api/sendOrReceiveMessage";
 import Preloader from "../../../shared/ui/Preloader/Preloader";
 import { clearAuth } from "../../../features/auth/auth";
 import { useNavigate } from "react-router";
+import { checkAccount, getChatUserData } from "../api/getChatUserData";
 
 function ChatsPage() {
   const navigate = useNavigate();
@@ -19,9 +20,12 @@ function ChatsPage() {
   const [selectedChat, setSelectedChat] = useState<EnrichedChat | undefined>(undefined);
   const [currentMessagesList, setCurrentMessagesList] = useState<TextMessage[]>();
   const [messageToSend, setMessageToSend] = useState("");
+  const [messageToSendPanel, setMessageToSendPanel] = useState("");
+  const [phoneToFind, setPhoneToFind] = useState("");
 
   const [chatsLoading, setChatsLoading] = useState(false);
   const [messagesLoading, setMessagesLoadingLoading] = useState(false);
+  const [newChatError, setNewChatError] = useState("");
 
   const getUserChats = async () => {
     setChatsLoading(true);
@@ -29,6 +33,7 @@ function ChatsPage() {
     try {
       const userChats = await getEnrichedChats();
       setChatList(userChats);
+      console.log(userChats);
     } finally {
       setChatsLoading(false);
     }
@@ -39,13 +44,14 @@ function ChatsPage() {
     return name[0];
   };
 
-  const selectChat = (chat: EnrichedChat | undefined) => {
+  const selectChat = async (chat: EnrichedChat | undefined) => {
     if (!chat) {
       setSelectedChat(undefined);
     }
 
     setSelectedChat(chat);
     getMessagesHistory(chat);
+    await readChat(chat?.chatId);
   };
 
   const getMessagesHistory = async (chat: EnrichedChat | undefined) => {
@@ -66,27 +72,26 @@ function ChatsPage() {
     }, 100);
   };
 
-  const sendMessage = async () => {
-    const text = messageToSend.trim();
-    if (!text || !selectedChat) return;
+  const sendMessage = async (chatId: string | undefined, message: string) => {
+    const text = message.trim();
+    if (!text || !chatId) return;
 
     setMessageToSend("");
 
     try {
-      const response = await sendMessageApi(text, selectedChat.chatId, 1000);
+      const response = await sendMessageApi(text, chatId, 1000);
 
       const newMessage: TextMessage = {
         type: "outgoing",
         idMessage: response?.idMessage ?? crypto.randomUUID(),
         timestamp: Math.floor(Date.now() / 1000),
         typeMessage: "textMessage",
-        chatId: selectedChat.chatId,
+        chatId: chatId,
         chatType: "user",
         textMessage: text,
         isForwarded: false,
         forwardingScore: 0,
-        senderId: selectedChat.chatId,
-        senderName: "Кирилл",
+        senderId: chatId,
         senderType: "user",
         senderContactName: "",
         deletedMessageId: "",
@@ -95,16 +100,67 @@ function ChatsPage() {
         isDeleted: false,
       };
 
-      addMessageToChat(selectedChat.chatId, newMessage);
+      addMessageToChat(chatId, newMessage);
     } catch (err) {
       console.error("Не удалось отправить сообщение", err);
     }
   };
 
-  const addMessageToChat = (chatId: string, message: TextMessage) => {
-    setCurrentMessagesList((prev) => [...(prev ?? []), message]);
+  const createNewChat = async () => {
+    const text = messageToSendPanel.trim();
+    const phone = phoneToFind.trim();
+    if (!text || !phone) return;
 
-    setChatList((prev) => prev?.map((chat) => (chat.chatId === chatId ? { ...chat, lastMessage: message } : chat)));
+    const account = await checkAccount(Number(phone));
+    if (!account?.exist || !account.chatId) {
+      setNewChatError("Аккаунт не найден");
+      return;
+    }
+
+    setNewChatError("");
+
+    const chatId = account.chatId;
+
+    const existingChat = chatList?.find((chat) => chat.chatId === chatId);
+    if (existingChat) {
+      setPhoneToFind("");
+      setMessageToSendPanel("");
+      await selectChat(existingChat);
+      await sendMessage(chatId, text);
+      return;
+    }
+
+    const userData = await getChatUserData(chatId);
+    const newChat: EnrichedChat = {
+      type: "user",
+      chatId,
+      name: userData?.name || phone,
+      username: userData?.username,
+      phoneNumber: Number(phone),
+      avatar: (userData?.avatar as any) ?? null,
+      contact: userData ?? null,
+      lastMessage: null,
+    };
+
+    setChatList((prev) => [newChat, ...(prev ?? [])]);
+    setSelectedChat(newChat);
+    setCurrentMessagesList([]);
+    setPhoneToFind("");
+    setMessageToSendPanel("");
+
+    await sendMessage(chatId, text);
+  };
+
+  const addMessageToChat = (chatId: string, message: TextMessage) => {
+    if (chatId === selectedChat?.chatId || chatId.replace(/@c\.us$/, "") === selectedChat?.phoneNumber.toString()) {
+      setCurrentMessagesList((prev) => [...(prev ?? []), message]);
+    }
+
+    setChatList((prev) =>
+      prev?.map((chat) =>
+        chat.chatId === chatId || chatId.replace(/@c\.us$/, "") === chat.phoneNumber.toString() ? { ...chat, lastMessage: message } : chat,
+      ),
+    );
   };
 
   const receiveNotificationsPoll = async () => {
@@ -119,14 +175,13 @@ function ChatsPage() {
       };
 
       addMessageToChat(notification.body.senderData.chatId, incomingMessage);
-      console.log(incomingMessage);
     }
   };
 
   const logout = () => {
     clearAuth();
     navigate("/");
-  }
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -161,7 +216,27 @@ function ChatsPage() {
         <div className={styles["chats-container"]}>
           <div className={styles["chats-header"]}>
             <h2>Чаты</h2>
-            <ButtonBase onClick={() => logout()} addClass={styles["logout-button"]}>Выйти</ButtonBase>
+            <ButtonBase onClick={() => logout()} addClass={styles["logout-button"]}>
+              Выйти
+            </ButtonBase>
+          </div>
+          <div className={styles["chats-chats-add"]}>
+            <p className={styles["hint-base"]}>
+              Введите номер телефона пользователя и нажмите "Написать" чтобы отправить сообщение по номеру телефона.
+            </p>
+            <div className={styles["chats-chats-add-form"]}>
+              <InputBase value={phoneToFind} onChange={(value) => setPhoneToFind(value)} placeholder="79250000000" />
+              <InputBase
+                value={messageToSendPanel}
+                onChange={(value) => setMessageToSendPanel(value)}
+                placeholder="Введите сообщение..."
+                onKeyDown={(e) => e.key === "Enter" && createNewChat()}
+              />
+              {newChatError && <p className={styles["error-message"]}>{newChatError}</p>}
+              <ButtonBase onClick={() => createNewChat()} addClass={styles["logout-button"]}>
+                Написать
+              </ButtonBase>
+            </div>
           </div>
           <div className={styles["chats-list-container"]}>
             {chatsLoading ? (
@@ -233,16 +308,21 @@ function ChatsPage() {
                     className={`${styles["messages-window-messages"]} ${messagesLoading || !currentMessagesList || currentMessagesList.length === 0 ? styles["loading"] : ""}`}
                   >
                     {currentMessagesList && currentMessagesList.length > 0 ? (
-                      currentMessagesList.map((message: TextMessage) => (
-                        <div
-                          className={`${styles["messages-window-message-wrapper"]} ${message.type === "incoming" ? styles["incoming"] : ""}`}
-                          key={message.idMessage}
-                        >
-                          <div className={`${styles["messages-window-message"]} ${message.type === "incoming" ? styles["incoming"] : ""}`}>
-                            {message.textMessage}
-                          </div>
-                        </div>
-                      ))
+                      currentMessagesList.map(
+                        (message: TextMessage) =>
+                          message.typeMessage === "textMessage" && (
+                            <div
+                              className={`${styles["messages-window-message-wrapper"]} ${message.type === "incoming" ? styles["incoming"] : ""}`}
+                              key={message.idMessage}
+                            >
+                              <div
+                                className={`${styles["messages-window-message"]} ${message.type === "incoming" ? styles["incoming"] : ""}`}
+                              >
+                                {message.textMessage}
+                              </div>
+                            </div>
+                          ),
+                      )
                     ) : (
                       <div className={styles["no-chats"]}>
                         <p>Сообщений нет</p>
@@ -259,10 +339,10 @@ function ChatsPage() {
                   value={messageToSend}
                   onChange={(value) => setMessageToSend(value)}
                   placeholder="Введите сообщение..."
-                  onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+                  onKeyDown={(e) => e.key === "Enter" && sendMessage(selectedChat.chatId, messageToSend)}
                   addClass={styles["message-input"]}
                 />
-                <ButtonBase onClick={() => sendMessage()} addClass={styles["send-button"]}>
+                <ButtonBase onClick={() => sendMessage(selectedChat.chatId, messageToSend)} addClass={styles["send-button"]}>
                   Отправить
                 </ButtonBase>
               </div>

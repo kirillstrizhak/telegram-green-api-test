@@ -27,7 +27,7 @@ const InputBase: React.FC<InputBaseProps> = ({
       placeholder={placeholder ? placeholder : ""}
       value={value}
       onKeyDown={onKeyDown ? (e) => onKeyDown(e) : undefined}
-      onChange={(e) => onChange(e.target.value.trim())}
+      onChange={(e) => onChange(e.target.value)}
     />
   );
 };

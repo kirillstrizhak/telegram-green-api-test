@@ -1,8 +1,6 @@
 import axios from "axios";
 import { loadAuth } from "../../../features/auth/auth";
 
-let inFlight: Promise<any> | null = null;
-
 export async function sendMessageApi(
   message: string,
   chatId: string,
@@ -21,8 +19,8 @@ export async function sendMessageApi(
       { headers: { "Content-Type": "application/json" } },
     );
     return data;
-  } catch (error) {
-    return undefined;
+  } catch (error: any) {
+    return error.data;
   }
 }
 
@@ -34,7 +32,7 @@ export async function receiveNotificationApi() {
   const url = `${import.meta.env.VITE_APP_API_URL}/waInstance${authData.idInstance}/receiveNotification/${authData.apiTokenInstance}`;
 
   try {
-    const response = await axios(url);
+    const response = await axios.get(url);
     return response.data;
   } catch (error) {
     return undefined;
@@ -49,7 +47,22 @@ export async function deleteNotificationApi(receiptId: number) {
   const url = `${import.meta.env.VITE_APP_API_URL}/waInstance${authData.idInstance}/deleteNotification/${authData.apiTokenInstance}/${receiptId}`;
 
   try {
-    const response = await axios(url);
+    const response = await axios.delete(url);
+    return response.data;
+  } catch (error:  any) {
+    return error?.data ?? undefined;
+  }
+}
+
+export async function readChat(chatId: string | undefined) {
+  const authData = loadAuth();
+  if (!authData) {
+    return undefined;
+  }
+  const url = `${import.meta.env.VITE_APP_API_URL}/waInstance${authData.idInstance}/readChat/${authData.apiTokenInstance}`;
+
+  try {
+    const response = await axios.post(url, {chatId});
     return response.data;
   } catch (error:  any) {
     return error?.data ?? undefined;

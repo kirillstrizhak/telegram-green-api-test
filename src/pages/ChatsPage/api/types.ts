@@ -3,7 +3,7 @@ export type Chat = {
   name: string;
   type: string;
   phoneNumber: number;
-  username: string;
+  username: string |  undefined;
 };
 
 export type ChatUserData = {
@@ -29,7 +29,7 @@ export type ChatUserAvatar = {
 export type EnrichedChat = Chat & {
   avatar: ChatUserAvatar | null;
   contact: ChatUserData | null;
-  lastMessage: TextMessage;
+  lastMessage: TextMessage | null;
 };
 
 export type TextMessage = {

@@ -22,10 +22,13 @@ function ChatsPage() {
   const [messageToSend, setMessageToSend] = useState("");
   const [messageToSendPanel, setMessageToSendPanel] = useState("");
   const [phoneToFind, setPhoneToFind] = useState("");
+  const [usernameToFind, setUsernameToFind] = useState("");
 
   const [chatsLoading, setChatsLoading] = useState(false);
   const [messagesLoading, setMessagesLoadingLoading] = useState(false);
   const [newChatError, setNewChatError] = useState("");
+
+  const [lookupMode, setLookupMode] = useState<"phone" | "username">("phone");
 
   const getUserChats = async () => {
     setChatsLoading(true);
@@ -109,9 +112,16 @@ function ChatsPage() {
   const createNewChat = async () => {
     const text = messageToSendPanel.trim();
     const phone = phoneToFind.trim();
-    if (!text || !phone) return;
+    const username = usernameToFind.trim();
 
-    const account = await checkAccount(Number(phone));
+    if (!text) return;
+
+    const lookupParams = lookupMode === "username" ? { username } : { phoneNumber: Number(phone) };
+
+    if (lookupMode === "username" && !username) return;
+    if (lookupMode === "phone" && !phone) return;
+
+    const account = await checkAccount(lookupParams);
     if (!account?.exist || !account.chatId) {
       setNewChatError("Аккаунт не найден");
       return;
@@ -124,6 +134,7 @@ function ChatsPage() {
     const existingChat = chatList?.find((chat) => chat.chatId === chatId);
     if (existingChat) {
       setPhoneToFind("");
+      setUsernameToFind("");
       setMessageToSendPanel("");
       await selectChat(existingChat);
       await sendMessage(chatId, text);
@@ -134,9 +145,9 @@ function ChatsPage() {
     const newChat: EnrichedChat = {
       type: "user",
       chatId,
-      name: userData?.name || phone,
-      username: userData?.username,
-      phoneNumber: Number(phone),
+      name: userData?.name || username || phone,
+      username: userData?.username || username,
+      phoneNumber: userData?.phoneNumber || Number(phone) || 0,
       avatar: (userData?.avatar as any) ?? null,
       contact: userData ?? null,
       lastMessage: null,
@@ -146,6 +157,7 @@ function ChatsPage() {
     setSelectedChat(newChat);
     setCurrentMessagesList([]);
     setPhoneToFind("");
+    setUsernameToFind("");
     setMessageToSendPanel("");
 
     await sendMessage(chatId, text);
@@ -222,17 +234,47 @@ function ChatsPage() {
           </div>
           <div className={styles["chats-chats-add"]}>
             <p className={styles["hint-base"]}>
-              Введите номер телефона пользователя и нажмите "Написать" чтобы отправить сообщение по номеру телефона.
+              Введите номер телефона пользователя и нажмите "Написать" чтобы отправить сообщение по номеру телефона или никнейму.
             </p>
             <div className={styles["chats-chats-add-form"]}>
-              <InputBase value={phoneToFind} onChange={(value) => setPhoneToFind(value)} placeholder="79250000000" />
+              <div className={styles["lookup-mode-toggle"]}>
+                <label>
+                  <input
+                    type="radio"
+                    name="lookupMode"
+                    value="phone"
+                    checked={lookupMode === "phone"}
+                    onChange={() => setLookupMode("phone")}
+                  />
+                  По номеру телефона
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    name="lookupMode"
+                    value="username"
+                    checked={lookupMode === "username"}
+                    onChange={() => setLookupMode("username")}
+                  />
+                  По никнейму
+                </label>
+              </div>
+
+              {lookupMode === "phone" ? (
+                <InputBase value={phoneToFind} onChange={(value) => setPhoneToFind(value)} placeholder="79250000000" />
+              ) : (
+                <InputBase value={usernameToFind} onChange={(value) => setUsernameToFind(value)} placeholder="@username" />
+              )}
+
               <InputBase
                 value={messageToSendPanel}
                 onChange={(value) => setMessageToSendPanel(value)}
                 placeholder="Введите сообщение..."
                 onKeyDown={(e) => e.key === "Enter" && createNewChat()}
               />
+
               {newChatError && <p className={styles["error-message"]}>{newChatError}</p>}
+
               <ButtonBase onClick={() => createNewChat()} addClass={styles["logout-button"]}>
                 Написать
               </ButtonBase>

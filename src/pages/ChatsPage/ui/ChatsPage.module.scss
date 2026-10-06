@@ -304,3 +304,21 @@
   color: #ff7070;
   text-align: center;
 }
+
+.lookup-mode-toggle {
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+
+  label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+
+    input {
+      cursor: pointer;
+    }
+  }
+}
